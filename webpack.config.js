@@ -5,6 +5,9 @@ const autoprefixer = require('autoprefixer')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin')
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest')
 
 module.exports = {
     mode: 'production',
@@ -26,11 +29,62 @@ module.exports = {
         maxAssetSize: 512000
     },
     plugins: [
-        new HtmlWebpackPlugin({ template: './src/index.html' }),
+        new HtmlWebpackPlugin({
+            title: "output management",
+            template: "./src/index.html",
+            favicon: "./src/favicon.ico",
+            filename: "index.html",
+            inject: "head",
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+                removeAttributeQuotes: true,
+            },
+        }),
+
+        // new HtmlWebpackPlugin({ template: './src/index.html' }),
         new HtmlWebpackInlineSVGPlugin({
             inlineAll: true,
         }),
-        new miniCssExtractPlugin()
+        new miniCssExtractPlugin(),
+        new WebpackManifestPlugin(
+            {
+                fileName: 'manifest.json',
+                basePath: 'dist/',
+            }
+        ),
+        new WorkboxPlugin.GenerateSW({
+          clientsClaim: true,
+          skipWaiting: true,
+        }),
+        new WebpackPwaManifest(
+            {
+                id: "https://conni.lgbt/",
+
+                "dir": "ltr",
+                "lang": "en",
+                "display_override": [
+                    "window-controls-overlay"
+                ],
+                "categories": [
+                    "productivity"
+                ],
+
+                name: "Connis Site",
+                short_name: "CSite",
+                description: "Connis personal website",
+                background_color: '#e5bdff',
+                theme_color: '#2d2d2d',
+                orientation: "portrait-primary",
+                display: "fullscreen",
+                start_url: ".",
+                inject: true,
+                fingerprints: true,
+                ios: true,
+                publicPath: "/",
+                includeDirectory: true,
+            }
+        ),
     ],
     module: {
         rules: [
@@ -64,7 +118,6 @@ module.exports = {
                     { loader: 'css-loader' }
                 ]
             }
-
         ]
     }
 }
